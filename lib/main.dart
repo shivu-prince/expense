@@ -59,6 +59,15 @@ class _MyAppState extends State<MyApp> {
               setState(() => _messages = messages);
             } else {
               await Permission.sms.request();
+              if(permission.isGranted){
+                _messages.isNotEmpty
+              ? MessagesListView(
+                  messages: _messages,
+                )
+              : const Center(
+                child: Text("do give permission"),
+              );
+              }
             }
           },
           child: const Icon(Icons.refresh),

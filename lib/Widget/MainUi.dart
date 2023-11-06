@@ -9,22 +9,24 @@ class MessagesListView extends StatelessWidget {
   }) : super(key: key);
 
   final List<SmsMessage> messages;
+  
 
-  final RegExp acPattern = RegExp(r'A/c \*', caseSensitive: false);
+  final PageController controller = PageController();
+
+  final RegExp acPattern = RegExp(r'A/c \*|account', caseSensitive: false);
   final RegExp upiPattern = RegExp(r'UPI', caseSensitive: false);
   final RegExp creditCardPattern = RegExp(r'credit card', caseSensitive: false);
   final RegExp netBankingPattern = RegExp(r'net banking', caseSensitive: false);
   final RegExp bankPattern = RegExp(r'bank', caseSensitive: false);
   final RegExp debitAmount = RegExp(r'(\d+\.\d*d*)', caseSensitive: false);
   final RegExp creditAmount = RegExp(r'(\d+\.\d*d*)', caseSensitive: false);
-  final RegExp credit = RegExp(r'credited', caseSensitive: false);
-  final RegExp debit = RegExp(r'debited', caseSensitive: false);
+  final RegExp credit = RegExp(r'credited|recived', caseSensitive: false);
+  final RegExp debit = RegExp(r'debited|paid|sent', caseSensitive: false);
 
   @override
   Widget build(BuildContext context) {
     final List<String> CreditAmount = [];
     final List<String> debitAmount = [];
-
 
 //adding credit and debit amount to list
     for (int i = 0; i < messages.length; i++) {
@@ -40,35 +42,31 @@ class MessagesListView extends StatelessWidget {
       }
     }
 
-    final double CreditSum = sumList(CreditAmount);
-    final double debitSum = sumList(debitAmount);
-    final double difference = CreditSum - debitSum;
+    final double? CreditSum = sumList(CreditAmount);
+    final double? debitSum = sumList(debitAmount);
+    final double difference = CreditSum! - debitSum!;
 
-    // month year and card view 
-
+    // Main ui
     return Scaffold(
       body: SingleChildScrollView(
-        child: Container(
-          child: Column(
-            children: <Widget>[
-              buildDate(),
-              const SizedBox(height: 10),
-              buildSummary(CreditSum, debitSum, difference),
-              const SizedBox(height: 30),
-              const Text(
-                "Debit list",
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
-              ),
-              for (var type in debitAmount) buildDebitTransaction(type),
-            ],
-          ),
+        child: Column(
+          children: <Widget>[
+            buildDate(),
+            const SizedBox(height: 10),
+            buildSummary(CreditSum, debitSum, difference),
+            const SizedBox(height: 30),
+            const Text(
+              "Analysis",
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(width: 10,),
+            for (var type in debitAmount)
+                buildDebitTransaction(type),
+           ],
         ),
       ),
     );
   }
-
-
-
 
 //gets current in month year formate
   Widget buildDate() {
@@ -79,10 +77,8 @@ class MessagesListView extends StatelessWidget {
     );
   }
 
-
 // card UI for credit debit and differnece amount
   Widget buildSummary(double creditSum, double debitSum, double difference) {
-
     arrow() {
       if (difference.isNegative) {
         return const arrowIndicatemin();
@@ -100,41 +96,40 @@ class MessagesListView extends StatelessWidget {
         width: 400,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  buildSummaryDetails("Credited", creditSum),
-                   const SizedBox(height: 10),
-                  buildSummaryDetails("Debited", debitSum),
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(120, 10, 10, 10),
+                    child: Text(
+                      difference.roundToDouble().toString(),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    child: arrow(),
+                  ),
                 ],
               ),
               const SizedBox(
-                width: 90,
+                width: 10,
               ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  difference.toString(),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: arrow(),
-              ),
+              buildSummaryDetails("Credited", creditSum),
+              const SizedBox(height: 10),
+              buildSummaryDetails("Debited", debitSum),
             ],
           ),
         ),
       ),
     );
   }
-
 
 //retruns the text for the above card view
   Widget buildSummaryDetails(String title, double amount) {
@@ -152,7 +147,6 @@ class MessagesListView extends StatelessWidget {
       ],
     );
   }
-
 
 //debit list view
   Widget buildDebitTransaction(String type) {
@@ -187,13 +181,15 @@ class MessagesListView extends StatelessWidget {
   }
 
 //passing credit / debit get the sum for the list
-  double sumList(List<String> items) {
+  double? sumList(List<String> items) {
     final List<double> doubleList =
         items.map((str) => double.parse(str)).toList();
-    return doubleList.reduce((value, element) => value + element);
+        if(doubleList.isNotEmpty){
+          return doubleList.reduce((value, element) => value + element);
+        }
+    return 0.00;
   }
 }
-
 
 //to change the arrow in card view
 class arrowIndicatemin extends StatelessWidget {
@@ -221,3 +217,4 @@ class arrowIndicatemax extends StatelessWidget {
     );
   }
 }
+
