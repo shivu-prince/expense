@@ -9,11 +9,11 @@ class MessagesListView extends StatelessWidget {
   }) : super(key: key);
 
   final List<SmsMessage> messages;
-  
 
   final PageController controller = PageController();
 
-  final RegExp acPattern = RegExp(r'A/c \*|account', caseSensitive: false);
+  final RegExp acPattern =
+      RegExp(r'A/c \*|account|A/c x|A/c \d', caseSensitive: false);
   final RegExp upiPattern = RegExp(r'UPI', caseSensitive: false);
   final RegExp creditCardPattern = RegExp(r'credit card', caseSensitive: false);
   final RegExp netBankingPattern = RegExp(r'net banking', caseSensitive: false);
@@ -22,7 +22,7 @@ class MessagesListView extends StatelessWidget {
   final RegExp creditAmount = RegExp(r'(\d+\.\d*d*)', caseSensitive: false);
   final RegExp credit = RegExp(r'credited|recived', caseSensitive: false);
   final RegExp debit = RegExp(r'debited|paid|sent', caseSensitive: false);
-
+  final RegExp minbal = RegExp(r'min bal|avl bal|aval', caseSensitive: false);
   @override
   Widget build(BuildContext context) {
     final List<String> CreditAmount = [];
@@ -32,7 +32,8 @@ class MessagesListView extends StatelessWidget {
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
       if (bankPattern.hasMatch(message.body!) &&
-          acPattern.hasMatch(message.body!)) {
+          acPattern.hasMatch(message.body!) &&
+          !minbal.hasMatch(message.body!)) {
         final transactionType = extractAmount(message.body!);
         if (credit.hasMatch(message.body!)) {
           CreditAmount.add(transactionType);
@@ -49,22 +50,45 @@ class MessagesListView extends StatelessWidget {
     // Main ui
     return Scaffold(
       body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            buildDate(),
-            const SizedBox(height: 10),
-            buildSummary(CreditSum, debitSum, difference),
-            const SizedBox(height: 30),
-            const Text(
-              "Analysis",
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(width: 10,),
-            for (var type in debitAmount)
-                buildDebitTransaction(type),
-           ],
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10, right: 10),
+          child: Column(
+            children: <Widget>[
+              buildDate(),
+              const SizedBox(height: 10),
+              buildSummary(CreditSum, debitSum, difference),
+              const SizedBox(height: 30),
+              const Text(
+                "Analysis",
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              for (var type in debitAmount) buildDebitTransaction(type),
+            ],
+          ),
         ),
       ),
+      bottomNavigationBar: BottomAppBar(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(
+              Icons.add_rounded,
+              size: 30,
+            ),
+          ),
+          IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.sync_rounded,
+                size: 30,
+              ))
+        ],
+      )),
     );
   }
 
@@ -184,9 +208,9 @@ class MessagesListView extends StatelessWidget {
   double? sumList(List<String> items) {
     final List<double> doubleList =
         items.map((str) => double.parse(str)).toList();
-        if(doubleList.isNotEmpty){
-          return doubleList.reduce((value, element) => value + element);
-        }
+    if (doubleList.isNotEmpty) {
+      return doubleList.reduce((value, element) => value + element);
+    }
     return 0.00;
   }
 }
@@ -217,4 +241,3 @@ class arrowIndicatemax extends StatelessWidget {
     );
   }
 }
-

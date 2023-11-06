@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         body: Container(
           margin: const EdgeInsets.only(top: 70),
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.only(top: 10),
           child: _messages.isNotEmpty
               ? MessagesListView(
                   messages: _messages,
@@ -72,6 +72,7 @@ class _MyAppState extends State<MyApp> {
           },
           child: const Icon(Icons.refresh),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
   }
