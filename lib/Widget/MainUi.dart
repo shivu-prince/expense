@@ -15,8 +15,6 @@ class MessagesListView extends StatelessWidget {
   final RegExp acPattern =
       RegExp(r'A/c \*|account|A/c x|A/c \d', caseSensitive: false);
   final RegExp upiPattern = RegExp(r'UPI', caseSensitive: false);
-  final RegExp creditCardPattern = RegExp(r'credit card', caseSensitive: false);
-  final RegExp netBankingPattern = RegExp(r'net banking', caseSensitive: false);
   final RegExp bankPattern = RegExp(r'bank', caseSensitive: false);
   final RegExp debitAmount = RegExp(r'(\d+\.\d*d*)', caseSensitive: false);
   final RegExp creditAmount = RegExp(r'(\d+\.\d*d*)', caseSensitive: false);
@@ -32,13 +30,14 @@ class MessagesListView extends StatelessWidget {
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
       if (bankPattern.hasMatch(message.body!) &&
-          acPattern.hasMatch(message.body!) &&
+          acPattern.hasMatch(message.body!) && 
+          upiPattern.hasMatch(message.body!) &&
           !minbal.hasMatch(message.body!)) {
-        final transactionType = extractAmount(message.body!);
+        final transactionAmount = extractAmount(message.body!);
         if (credit.hasMatch(message.body!)) {
-          CreditAmount.add(transactionType);
+          CreditAmount.add(transactionAmount);
         } else if (debit.hasMatch(message.body!)) {
-          debitAmount.add(transactionType);
+          debitAmount.add(transactionAmount);
         }
       }
     }
@@ -49,25 +48,39 @@ class MessagesListView extends StatelessWidget {
 
     // Main ui
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 10, right: 10),
-          child: Column(
-            children: <Widget>[
-              buildDate(),
-              const SizedBox(height: 10),
-              buildSummary(CreditSum, debitSum, difference),
-              const SizedBox(height: 30),
-              const Text(
-                "Analysis",
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              for (var type in debitAmount) buildDebitTransaction(type),
-            ],
-          ),
+      body: Padding(
+        padding: const EdgeInsets.only(left: 10, right: 10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            buildDate(),
+            const SizedBox(height: 10),
+            buildSummary(CreditSum, debitSum, difference),
+            const SizedBox(height: 30),
+            const Text(
+              "Analysis",
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+           Container(
+            height: 100,
+             child: ListView.builder(
+              scrollDirection: Axis.vertical,
+                 shrinkWrap: true,
+                 itemCount: debitAmount.length,
+                 itemBuilder: (BuildContext context, int i) {
+                 var message = debitAmount[i];
+                 return Container(
+                   child: ListTile(
+                     title: Text("Rs $message"),
+                   ),
+                 );
+                 },
+               ),
+           ),
+          ],
         ),
       ),
       bottomNavigationBar: BottomAppBar(
@@ -240,4 +253,15 @@ class arrowIndicatemax extends StatelessWidget {
       color: Colors.green,
     );
   }
+}
+
+Future? displaybottombox(BuildContext context){
+    return showModalBottomSheet(context: context, builder: (context) => 
+    Column(
+      children: [
+        TextField(),
+        TextField(),
+      ],
+    ),
+    );
 }

@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: Scaffold(
         body: Container(
-          margin: const EdgeInsets.only(top: 70),
+          margin: const EdgeInsets.only(top: 30),
           padding: const EdgeInsets.only(top: 10),
           child: _messages.isNotEmpty
               ? MessagesListView(
